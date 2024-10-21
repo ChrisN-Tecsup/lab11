@@ -152,4 +152,17 @@ fun NavGraphBuilder.makeItSoGraph(appState: MakeItSoAppState) {
       popUpScreen = { appState.popUp() }
     )
   }
+  @Composable
+  fun NavigationGraph(navController: NavHostController) {
+    NavHost(navController, startDestination = TASKS_SCREEN) {
+      composable(TASKS_SCREEN) {
+        TasksScreen(openScreen = { route -> navController.navigate(route) })
+      }
+      composable(EDIT_TASK_SCREEN) {
+        EditTaskScreen(popUpScreen = { navController.popBackStack() })
+      }
+      // Otras pantallas si es necesario
+    }
+  }
+
 }

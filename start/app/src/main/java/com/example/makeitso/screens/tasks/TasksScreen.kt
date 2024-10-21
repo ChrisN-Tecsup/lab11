@@ -28,6 +28,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.makeitso.EDIT_TASK_SCREEN
 import com.example.makeitso.R.drawable as AppIcon
 import com.example.makeitso.R.string as AppText
 import com.example.makeitso.common.composable.ActionToolbar
@@ -42,15 +44,23 @@ fun TasksScreen(
   openScreen: (String) -> Unit,
   viewModel: TasksViewModel = hiltViewModel()
 ) {
-  TasksScreenContent(
-    onAddClick = viewModel::onAddClick,
-    onSettingsClick = viewModel::onSettingsClick,
-    onTaskCheckChange = viewModel::onTaskCheckChange,
-    onTaskActionClick = viewModel::onTaskActionClick,
-    openScreen = openScreen
-  )
+  val tasks by viewModel.tasks.collectAsStateWithLifecycle(emptyList())
 
-  LaunchedEffect(viewModel) { viewModel.loadTaskOptions() }
+  TasksScreenContent(
+    onAddClick = { openScreen("add_task") },
+    onSettingsClick = { openScreen("settings") },
+    onTaskCheckChange = viewModel::onTaskCheckChange,
+    onTaskActionClick = { action, task -> viewModel.onTaskActionClick(openScreen, task, action) }
+    ,
+    openScreen = openScreen,
+    tasks = tasks
+  )
+  Button(onClick = { viewModel.onAddClick(openScreen) }) {
+    Text("Agregar Tarea")
+  }
+  LaunchedEffect(viewModel) {
+    viewModel.loadTaskOptions()
+  }
 }
 
 @SuppressLint("UnusedMaterialScaffoldPaddingParameter")
@@ -58,21 +68,22 @@ fun TasksScreen(
 @ExperimentalMaterialApi
 fun TasksScreenContent(
   modifier: Modifier = Modifier,
-  onAddClick: ((String) -> Unit) -> Unit,
-  onSettingsClick: ((String) -> Unit) -> Unit,
+  onAddClick: (String) -> Unit,
+  onSettingsClick: (String) -> Unit,
   onTaskCheckChange: (Task) -> Unit,
-  onTaskActionClick: ((String) -> Unit, Task, String) -> Unit,
-  openScreen: (String) -> Unit
+  onTaskActionClick: (String, Task) -> Unit,
+  openScreen: (String) -> Unit,
+  tasks: List<Task>
 ) {
   Scaffold(
     floatingActionButton = {
       FloatingActionButton(
-        onClick = { onAddClick(openScreen) },
+        onClick = { onAddClick("add_task") },
         backgroundColor = MaterialTheme.colors.primary,
         contentColor = MaterialTheme.colors.onPrimary,
         modifier = modifier.padding(16.dp)
       ) {
-        Icon(Icons.Filled.Add, "Add")
+        Icon(Icons.Filled.Add, contentDescription = "Add")
       }
     }
   ) {
@@ -81,18 +92,18 @@ fun TasksScreenContent(
         title = AppText.tasks,
         modifier = Modifier.toolbarActions(),
         endActionIcon = AppIcon.ic_settings,
-        endAction = { onSettingsClick(openScreen) }
+        endAction = { onSettingsClick("settings") }
       )
 
       Spacer(modifier = Modifier.smallSpacer())
 
       LazyColumn {
-        items(emptyList<Task>(), key = { it.id }) { taskItem ->
+        items(tasks, key = { it.id }) { taskItem ->
           TaskItem(
             task = taskItem,
             options = listOf(),
             onCheckChange = { onTaskCheckChange(taskItem) },
-            onActionClick = { action -> onTaskActionClick(openScreen, taskItem, action) }
+            onActionClick = { action -> onTaskActionClick(action, taskItem) } // Pasa correctamente action y taskItem
           )
         }
       }
@@ -109,8 +120,13 @@ fun TasksScreenPreview() {
       onAddClick = { },
       onSettingsClick = { },
       onTaskCheckChange = { },
-      onTaskActionClick = { _, _, _ -> },
-      openScreen = { }
+      onTaskActionClick = { _, _ -> },
+      openScreen = { },
+      tasks = listOf()
     )
   }
+  fun onAddClick(openScreen: (String) -> Unit) {
+    openScreen(EDIT_TASK_SCREEN) // Navega a la pantalla de edición
+  }
+
 }

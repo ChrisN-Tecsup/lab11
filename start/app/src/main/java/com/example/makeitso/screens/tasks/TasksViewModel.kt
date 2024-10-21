@@ -26,7 +26,6 @@ import com.example.makeitso.model.service.LogService
 import com.example.makeitso.model.service.StorageService
 import com.example.makeitso.screens.MakeItSoViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.emptyFlow
 import javax.inject.Inject
 
 @HiltViewModel
@@ -37,7 +36,7 @@ class TasksViewModel @Inject constructor(
 ) : MakeItSoViewModel(logService) {
   val options = mutableStateOf<List<String>>(listOf())
 
-  val tasks = emptyFlow<List<Task>>()
+  val tasks = storageService.tasks
 
   fun loadTaskOptions() {
     //TODO
@@ -53,7 +52,7 @@ class TasksViewModel @Inject constructor(
 
   fun onTaskActionClick(openScreen: (String) -> Unit, task: Task, action: String) {
     when (TaskActionOption.getByTitle(action)) {
-      TaskActionOption.EditTask -> openScreen("$EDIT_TASK_SCREEN?$TASK_ID={${task.id}}")
+      TaskActionOption.EditTask -> openScreen("$EDIT_TASK_SCREEN?$TASK_ID=${task.id}")
       TaskActionOption.ToggleFlag -> onFlagTaskClick(task)
       TaskActionOption.DeleteTask -> onDeleteTaskClick(task)
     }

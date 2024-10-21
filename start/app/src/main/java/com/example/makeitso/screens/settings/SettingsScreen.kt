@@ -40,8 +40,10 @@ fun SettingsScreen(
   openScreen: (String) -> Unit,
   viewModel: SettingsViewModel = hiltViewModel()
 ) {
+  val uiState by viewModel.uiState.collectAsState(initial = SettingsUiState(false)) // Valor inicial agregado
+
   SettingsScreenContent(
-    uiState = viewModel.uiState,
+    uiState = uiState,
     onLoginClick = { viewModel.onLoginClick(openScreen) },
     onSignUpClick = { viewModel.onSignUpClick(openScreen) },
     onSignOutClick = { viewModel.onSignOutClick(restartApp) },
@@ -141,7 +143,7 @@ private fun DeleteMyAccountCard(deleteMyAccount: () -> Unit) {
 @ExperimentalMaterialApi
 @Composable
 fun SettingsScreenPreview() {
-  val uiState = SettingsUiState(isAnonymousAccount = false)
+  val uiState = SettingsUiState(false) // Valor inicial para la vista previa
 
   MakeItSoTheme {
     SettingsScreenContent(

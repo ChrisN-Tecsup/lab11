@@ -43,6 +43,9 @@ class EditTaskViewModel @Inject constructor(
       launchCatching {
         task.value = storageService.getTask(taskId.idFromParameter()) ?: Task()
       }
+    } else {
+
+      task.value = Task()
     }
   }
 
@@ -82,12 +85,18 @@ class EditTaskViewModel @Inject constructor(
   fun onDoneClick(popUpScreen: () -> Unit) {
     launchCatching {
       val editedTask = task.value
-      if (editedTask.id.isBlank()) {
-        storageService.save(editedTask)
-      } else {
-        storageService.update(editedTask)
+      // Agrega aquí cualquier validación que necesites
+      if (editedTask.title.isBlank()) {
+        // Manejar caso donde el título está vacío
+        return@launchCatching // O lanza una excepción
       }
-      popUpScreen()
+
+      if (editedTask.id.isBlank()) {
+        storageService.save(editedTask) // Guarda la nueva tarea
+      } else {
+        storageService.update(editedTask) // Actualiza la tarea existente
+      }
+      popUpScreen() // Regresar a la pantalla anterior
     }
   }
 
@@ -100,3 +109,4 @@ class EditTaskViewModel @Inject constructor(
     private const val DATE_FORMAT = "EEE, d MMM yyyy"
   }
 }
+
